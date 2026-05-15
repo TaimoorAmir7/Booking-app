@@ -1,0 +1,11 @@
+**/.venv
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.local
+**/db.sqlite3
+**/.git
+**/AGENTS.md
+**/CLAUDE.md

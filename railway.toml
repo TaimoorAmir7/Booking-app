@@ -1,0 +1,9 @@
+# One Railway service — repo root (Docker: frontend + backend + nginx)
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health/"
+healthcheckTimeout = 180
+restartPolicyType = "ON_FAILURE"

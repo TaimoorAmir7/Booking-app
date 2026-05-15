@@ -6,7 +6,12 @@ import type {
   User,
 } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+function apiBaseUrl(): string {
+  const env = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (env) return env.replace(/\/$/, "");
+  if (typeof window !== "undefined") return `${window.location.origin}/api`;
+  return "http://localhost:4000/api";
+}
 
 export class ApiError extends Error {
   status: number;
@@ -40,7 +45,7 @@ async function request<T>(
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetch(`${apiBaseUrl()}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
@@ -118,6 +123,12 @@ export const api = {
 };
 
 export function getWsUrl(sessionId: string, accessToken: string): string {
-  const base = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:4000";
-  return `${base}/ws/chat/${sessionId}/?token=${encodeURIComponent(accessToken)}`;
+  const env = process.env.NEXT_PUBLIC_WS_URL?.trim();
+  let base = env;
+  if (!base && typeof window !== "undefined") {
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    base = `${proto}://${window.location.host}`;
+  }
+  if (!base) base = "ws://localhost:4000";
+  return `${base.replace(/\/$/, "")}/ws/chat/${sessionId}/?token=${encodeURIComponent(accessToken)}`;
 }
