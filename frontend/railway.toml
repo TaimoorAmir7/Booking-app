@@ -1,0 +1,8 @@
+# Railway service config — set "Root Directory" to /frontend in the Railway dashboard
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm run start -- -p ${PORT:-3000}"
+healthcheckPath = "/"
+restartPolicyType = "ON_FAILURE"

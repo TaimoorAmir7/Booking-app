@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.sqlite3
+backend/db.sqlite3
+
+# Node
+node_modules/
+.next/
+out/
+.env.local
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+*.log

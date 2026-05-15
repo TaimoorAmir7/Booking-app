@@ -1,0 +1,9 @@
+# Railway service config — set "Root Directory" to /backend in the Railway dashboard
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "mkdir -p /data && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p ${PORT:-8000} config.asgi:application"
+healthcheckPath = "/health/"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
