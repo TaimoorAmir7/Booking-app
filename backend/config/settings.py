@@ -8,7 +8,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 
 _railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "").strip()
-_default_hosts = "localhost,127.0.0.1"
+_default_hosts = "localhost,127.0.0.1,healthcheck.railway.app"
 if _railway_domain:
     _default_hosts += f",{_railway_domain}"
 ALLOWED_HOSTS = [
@@ -16,6 +16,9 @@ ALLOWED_HOSTS = [
     for h in os.getenv("DJANGO_ALLOWED_HOSTS", _default_hosts).split(",")
     if h.strip()
 ]
+# Railway internal healthcheck probe uses this Host header
+if "healthcheck.railway.app" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("healthcheck.railway.app")
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
