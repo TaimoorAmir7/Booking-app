@@ -22,15 +22,34 @@ export class ApiError extends Error {
   }
 }
 
+function fieldErrors(obj: Record<string, unknown>): string[] {
+  const parts: string[] = [];
+  for (const [key, val] of Object.entries(obj)) {
+    if (key === "detail" && typeof val === "string") {
+      parts.push(val);
+    } else if (Array.isArray(val)) {
+      parts.push(`${key}: ${val.map(String).join(", ")}`);
+    } else if (typeof val === "string") {
+      parts.push(`${key}: ${val}`);
+    }
+  }
+  return parts;
+}
+
 function parseError(data: unknown): string {
   if (!data || typeof data !== "object") return "Request failed";
-  const err = (data as { error?: unknown }).error;
-  if (typeof err === "string") return err;
-  if (typeof err === "object" && err !== null) {
-    const first = Object.values(err)[0];
-    if (Array.isArray(first)) return String(first[0]);
-    if (typeof first === "string") return first;
+  const record = data as Record<string, unknown>;
+
+  if (typeof record.error === "string") return record.error;
+
+  if (typeof record.error === "object" && record.error !== null) {
+    const parts = fieldErrors(record.error as Record<string, unknown>);
+    if (parts.length) return parts.join("; ");
   }
+
+  const direct = fieldErrors(record);
+  if (direct.length) return direct.join("; ");
+
   return "Request failed";
 }
 
@@ -49,7 +68,11 @@ async function request<T>(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new ApiError(parseError(data), res.status);
+    const message = parseError(data);
+    throw new ApiError(
+      message === "Request failed" ? `Error ${res.status}` : message,
+      res.status
+    );
   }
   return data as T;
 }
