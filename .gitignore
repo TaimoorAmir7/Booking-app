@@ -12,6 +12,8 @@ node_modules/
 .next/
 out/
 .env.local
+!.env*.example
+!**/.env*.example
 
 # IDE / OS
 .idea/
