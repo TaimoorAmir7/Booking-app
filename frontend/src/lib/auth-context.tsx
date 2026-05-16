@@ -107,7 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await api.me(tokens.access);
       return tokens.access;
     } catch (e) {
-      if (!(e instanceof ApiError) || e.status !== 401) throw e;
+      if (e instanceof ApiError && (e.status === 401 || e.status === 404)) {
+        if (e.status === 404) {
+          logout();
+          return null;
+        }
+      } else if (!(e instanceof ApiError) || e.status !== 401) {
+        throw e;
+      }
     }
     try {
       const refreshed = await api.refresh(tokens.refresh);

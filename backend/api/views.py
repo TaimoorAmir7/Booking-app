@@ -1,5 +1,4 @@
-import asyncio
-
+from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -105,7 +104,6 @@ class ChatSessionDetailView(generics.RetrieveAPIView):
         return ChatSession.objects.filter(user=self.request.user)
 
 
-@method_decorator(ratelimit(key="user", rate="60/m", method="POST", block=True), name="dispatch")
 class ChatMessageView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "chat"
@@ -128,12 +126,10 @@ class ChatMessageView(APIView):
                 metadata={},
             )
 
-        result = asyncio.run(
-            process_chat_message(
-                session,
-                request.user,
-                data["content"],
-                confirm_booking=data.get("confirm_booking", False),
-            )
+        result = async_to_sync(process_chat_message)(
+            session,
+            request.user,
+            data["content"],
+            confirm_booking=data.get("confirm_booking", False),
         )
         return Response(result, status=status.HTTP_200_OK)

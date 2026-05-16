@@ -6,9 +6,16 @@ import type {
   User,
 } from "@/types";
 
+function isLocalNextDev(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.hostname === "localhost" && window.location.port === "3000";
+}
+
 function apiBaseUrl(): string {
   const env = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (env) return env.replace(/\/$/, "");
+  // `npm run dev` on :3000 — Django/Daphne runs on :4000
+  if (isLocalNextDev()) return "http://localhost:4000/api";
   if (typeof window !== "undefined") return `${window.location.origin}/api`;
   return "http://localhost:4000/api";
 }
@@ -69,10 +76,17 @@ async function request<T>(
 
   if (!res.ok) {
     const message = parseError(data);
-    throw new ApiError(
-      message === "Request failed" ? `Error ${res.status}` : message,
-      res.status
-    );
+    let text = message;
+    if (message === "Request failed") {
+      if (res.status === 404) {
+        text = isLocalNextDev()
+          ? "API not found. Start the backend: daphne on port 4000."
+          : `API not found (404). Check NEXT_PUBLIC_API_URL.`;
+      } else {
+        text = `Error ${res.status}`;
+      }
+    }
+    throw new ApiError(text, res.status);
   }
   return data as T;
 }
